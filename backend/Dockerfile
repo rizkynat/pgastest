@@ -1,0 +1,18 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN mkdir -p /app/uploads
+
+RUN npm run prisma:generate
+RUN npm run build
+
+EXPOSE 3001
+
+CMD ["npm","run","start:prod"]

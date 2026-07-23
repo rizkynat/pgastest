@@ -1,0 +1,125 @@
+import type { ColumnDef } from "@tanstack/react-table";
+import { Edit, Trash2 } from "lucide-react";
+
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatDateTime } from "@/lib/utils";
+
+export interface ColumnMeta {
+  key: string;
+  label: string;
+  type: "string" | "number" | "badge" | "date" | "currency" | "link";
+  sortable?: boolean;
+  hidden?: boolean;
+}
+
+export function generateColumns<T>(meta: ColumnMeta[]): ColumnDef<T>[] {
+  const columns: ColumnDef<T>[] = [
+    // Kolom select (selalu ada)
+    {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+  ];
+
+  // Tambahkan kolom berdasarkan meta
+  meta.forEach((m) => {
+    if (m.hidden) return;
+
+    const column: ColumnDef<T> = {
+      accessorKey: m.key,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={m.label} />,
+      enableSorting: m.sortable ?? false,
+      enableHiding: !m.key.includes("id"), // ID biasanya tidak bisa di-hide
+    };
+
+    // Sesuaikan cell berdasarkan type
+    switch (m.type) {
+      case "number":
+        column.cell = ({ row }) => <span className="tabular-nums">{(row.original as any)[m.key]}</span>;
+        break;
+      case "badge":
+        column.cell = ({ row }) => <Badge variant="secondary">{(row.original as any)[m.key]}</Badge>;
+        break;
+      case "date":
+        column.cell = ({ row }) => (
+          <span>{ formatDateTime((row.original as any)[m.key])}</span>
+        );
+        break;
+      case "currency":
+        column.cell = ({ row }) => <span className="tabular-nums">
+          {new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+          }).format((row.original as any)[m.key] ?? 0)}
+        </span>;
+        break;
+      case "link":
+        column.cell = ({ row }) => (
+          <a href={`collection/${(row.original as any)[m.key]}`}><span className="text-muted-foreground tabular-nums underline cursor-default hover:text-primary">Detail</span></a>
+        );
+        break;
+      default:
+        column.cell = ({ row }) => <span>{(row.original as any)[m.key]}</span>;
+    }
+
+    columns.push(column);
+  });
+
+  return columns;
+}
+
+// Fungsi untuk menambahkan kolom actions
+export function addActionsColumn<T>(
+  columns: ColumnDef<T>[],
+  onEdit?: (row: T) => void,
+  onDelete?: (row: T) => void
+): ColumnDef<T>[] {
+  if (!onEdit && !onDelete) return columns;
+
+  return [
+    ...columns,
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          {onEdit && (
+            <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
+              <Edit />
+              <span className="sr-only">Edit</span>
+            </Button>
+          )}
+          {onDelete && (
+            <Button variant="ghost" size="icon" onClick={() => onDelete(row.original)}>
+              <Trash2 />
+              <span className="sr-only">Delete</span>
+            </Button>
+          )}
+        </div>
+      ),
+      enableSorting: false,
+    },
+  ];
+}

@@ -44,8 +44,8 @@ export const sidebarItems: NavGroup[] = [
         icon: LayoutDashboard,
       },
       {
-        title: "Collection",
-        url: "/dashboard/collection",
+        title: "Pengeluaran",
+        url: "/dashboard/spendings-report",
         icon: BookType,
       }
     ],

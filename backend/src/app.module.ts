@@ -12,6 +12,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { DepartmentModule } from './modules/department/department.module';
 import { SpendingModule } from './modules/spending/spending.module';
+import { SpendingReportModule } from './modules/spendings-report/spending.module';
 
 
 @Module({
@@ -30,6 +31,7 @@ import { SpendingModule } from './modules/spending/spending.module';
     EmployeeModule,
     DepartmentModule,
     SpendingModule,
+    SpendingReportModule,
     DashboardModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
